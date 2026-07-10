@@ -1,0 +1,44 @@
+:root {
+    --bg-dark: #0b0e11;
+    --bg-panel: #181a20;
+    --border-color: #2b3139;
+    --text-primary: #EAECEF;
+    --text-secondary: #848E9C;
+    --color-buy: #0ECB81;
+    --color-sell: #F6465D;
+    --font-ui: 'Inter', sans-serif;
+    --font-mono: 'Roboto Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background-color: var(--bg-dark); color: var(--text-primary); font-family: var(--font-ui); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.navbar { height: 60px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+.nav-left, .nav-right { display: flex; align-items: center; gap: 20px; }
+.logo { font-weight: 700; color: #FCD535; }
+.nav-price { font-family: var(--font-mono); font-size: 18px; font-weight: 700; }
+.text-cyan { color: #0ECB81; }
+.exchange-grid { display: flex; flex: 1; height: calc(100vh - 60px); }
+.chart-container { flex: 1; border-right: 1px solid var(--border-color); position: relative; }
+.order-panel { width: 350px; background-color: var(--bg-panel); display: flex; flex-direction: column; }
+.panel-header { padding: 15px 20px; font-weight: 600; border-bottom: 1px solid var(--border-color); }
+#trade-form { padding: 20px; flex: 1; overflow-y: auto; }
+.order-tabs { display: flex; margin-bottom: 20px; background: var(--bg-dark); padding: 4px; border-radius: 4px; }
+.tab { flex: 1; background: transparent; border: none; color: var(--text-secondary); padding: 8px 0; cursor: pointer; border-radius: 4px; }
+.tab.active { background: var(--border-color); color: var(--text-primary); }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; color: var(--text-secondary); font-size: 12px; margin-bottom: 5px; }
+.input-wrapper { display: flex; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 4px; padding: 0 10px; align-items: center; }
+.input-wrapper input { flex: 1; background: transparent; border: none; color: var(--text-primary); padding: 10px 0; font-family: var(--font-mono); }
+.input-wrapper input:focus { outline: none; }
+.input-wrapper .currency { color: var(--text-secondary); font-size: 12px; }
+.action-buttons { display: flex; gap: 10px; margin-top: 20px; }
+.btn { flex: 1; border: none; border-radius: 4px; padding: 12px 0; cursor: pointer; font-weight: 700; color: white; }
+.btn-buy { background-color: var(--color-buy); }
+.btn-sell { background-color: var(--color-sell); }
+.console-output { background: var(--bg-dark); padding: 15px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); border-top: 1px solid var(--border-color); min-height: 80px; }
+.algo-toggle { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #FCD535; font-weight: 600; }
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); border-radius: 20px; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .4s; }
+input:checked + .slider { background-color: #FCD535; }
+input:checked + .slider:before { transform: translateX(20px); }

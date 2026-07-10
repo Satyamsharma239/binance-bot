@@ -1,0 +1,8 @@
+__pycache__/
+.env
+venv/
+.pytest_cache/
+.git/
+*.pyc
+*.pyo
+trading_bot.log
