@@ -12,20 +12,29 @@ class AlgoEngine:
         self.symbol = 'BTCUSDT'
         self.quantity = 0.005
         self.interval = '1m'
+        self.logs = []
+
+    def log(self, msg):
+        time_str = time.strftime("%H:%M:%S")
+        formatted = f"[{time_str}] {msg}"
+        print(formatted)
+        self.logs.append(formatted)
+        if len(self.logs) > 50:
+            self.logs.pop(0)
 
     def start(self):
         if not self.is_running:
             self.is_running = True
             self.thread = threading.Thread(target=self._run_loop, daemon=True)
             self.thread.start()
-            print("Algo Engine Started.")
+            self.log("Algo Engine Started.")
 
     def stop(self):
         if self.is_running:
             self.is_running = False
             if self.thread:
                 self.thread.join(timeout=2)
-            print("Algo Engine Stopped.")
+            self.log("Algo Engine Stopped.")
 
     def _run_loop(self):
         while self.is_running:
@@ -50,11 +59,24 @@ class AlgoEngine:
         latest_rsi = df['RSI'].iloc[-2]
         current_price = df['close'].iloc[-1]
         
-        print(f"[ALGO] {self.symbol} - Price: {current_price} | RSI: {latest_rsi:.2f}")
+        self.log(f"Analyzed {self.symbol} - Price: {current_price} | RSI: {latest_rsi:.2f}")
 
-        if latest_rsi < 30:
-            print(f"*** BUY SIGNAL (Oversold): RSI {latest_rsi:.2f} < 30 ***")
-        elif latest_rsi > 70:
-            print(f"*** SELL SIGNAL (Overbought): RSI {latest_rsi:.2f} > 70 ***")
+        # Using tight thresholds for immediate demo feedback (usually 30/70)
+        if latest_rsi < 45:
+            self.log(f"*** BUY SIGNAL: RSI {latest_rsi:.2f} < 45 ***")
+            try:
+                from bot.orders import execute_order
+                execute_order(self.symbol, 'BUY', 'MARKET', self.quantity)
+                self.log(f"Executed BUY {self.quantity} {self.symbol}")
+            except Exception as e:
+                self.log(f"Trade Error: {e}")
+        elif latest_rsi > 55:
+            self.log(f"*** SELL SIGNAL: RSI {latest_rsi:.2f} > 55 ***")
+            try:
+                from bot.orders import execute_order
+                execute_order(self.symbol, 'SELL', 'MARKET', self.quantity)
+                self.log(f"Executed SELL {self.quantity} {self.symbol}")
+            except Exception as e:
+                self.log(f"Trade Error: {e}")
 
 algo_engine = AlgoEngine()

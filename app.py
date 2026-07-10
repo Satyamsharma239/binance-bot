@@ -69,6 +69,11 @@ def toggle_algo():
         algo_engine.stop()
         return jsonify({'status': 'success', 'message': 'Algo Engine Stopped'})
 
+@app.route('/api/logs', methods=['GET'])
+def get_logs():
+    """Returns the recent logs from the Algo Engine."""
+    return jsonify({'logs': algo_engine.logs})
+
 if __name__ == '__main__':
     # Run the Flask app on port 5001 to avoid macOS AirPlay conflicts
     app.run(debug=True, port=5001)

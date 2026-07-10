@@ -22,3 +22,10 @@
 2026-07-10 20:49:24,484 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
 2026-07-10 20:49:46,367 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
 2026-07-10 20:49:46,825 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-10 20:52:26,017 - trading_bot - ERROR - API credentials missing.
+2026-07-10 20:54:39,341 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-10 20:54:39,639 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-10 20:55:31,340 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-10 20:55:33,510 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-10 20:55:43,930 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-10 20:55:44,682 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.

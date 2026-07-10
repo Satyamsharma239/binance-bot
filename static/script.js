@@ -12,8 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sellBtn = document.getElementById('sell-btn');
 
     const chart = LightweightCharts.createChart(chartContainer, {
-        width: chartContainer.clientWidth,
-        height: chartContainer.clientHeight,
+        autoSize: true,
         layout: { background: { type: 'solid', color: '#0b0e11' }, textColor: '#848E9C' },
         grid: { vertLines: { color: '#2b3139' }, horzLines: { color: '#2b3139' } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
@@ -105,11 +104,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { logToConsole(`ERROR: ${error.message}`, true); }
     }
     
+    let logInterval = null;
+
+    async function fetchLogs() {
+        try {
+            const res = await fetch('/api/logs');
+            const data = await res.json();
+            if (data.logs && data.logs.length > 0) {
+                statusMsg.innerHTML = data.logs.map(log => 
+                    `<div style="color: ${log.includes('ERROR') || log.includes('Error') ? '#F6465D' : (log.includes('BUY') || log.includes('SELL') ? '#FCD535' : '#848E9C')}">${log}</div>`
+                ).join('');
+                statusMsg.scrollTop = statusMsg.scrollHeight;
+            }
+        } catch (e) { }
+    }
+
     document.getElementById('algo-switch').addEventListener('change', async (e) => {
         const isActive = e.target.checked;
         logToConsole(isActive ? "Starting Algo Engine..." : "Stopping Algo Engine...", !isActive);
         try {
             await fetch('/api/algo/toggle', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ active: isActive }) });
+            if (isActive) {
+                logInterval = setInterval(fetchLogs, 2000);
+            } else {
+                if (logInterval) clearInterval(logInterval);
+            }
         } catch (error) { e.target.checked = !isActive; logToConsole("Algo toggle failed.", true); }
     });
 });

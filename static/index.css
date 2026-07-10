@@ -34,7 +34,7 @@ body { background-color: var(--bg-dark); color: var(--text-primary); font-family
 .btn { flex: 1; border: none; border-radius: 4px; padding: 12px 0; cursor: pointer; font-weight: 700; color: white; }
 .btn-buy { background-color: var(--color-buy); }
 .btn-sell { background-color: var(--color-sell); }
-.console-output { background: var(--bg-dark); padding: 15px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); border-top: 1px solid var(--border-color); min-height: 80px; }
+.console-output { background: var(--bg-dark); padding: 15px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); border-top: 1px solid var(--border-color); height: 150px; overflow-y: auto; }
 .algo-toggle { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #FCD535; font-weight: 600; }
 .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
 .switch input { opacity: 0; width: 0; height: 0; }

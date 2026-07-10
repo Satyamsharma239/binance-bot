@@ -73,3 +73,15 @@ class BinanceFuturesClient:
         except Exception as e:
             logger.error(f"Failed to fetch server time: {e}")
             raise
+
+    def get_balance(self):
+        """Fetches the user's futures account balance."""
+        try:
+            account = self.client.futures_account()
+            return {
+                'availableMargin': account.get('availableBalance', '0.00'),
+                'totalMarginBalance': account.get('totalMarginBalance', '0.00')
+            }
+        except Exception as e:
+            logger.error(f"Failed to fetch balance: {e}")
+            raise
