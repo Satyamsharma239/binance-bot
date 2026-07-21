@@ -97,3 +97,7 @@
 2026-07-21 18:47:20,032 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
 2026-07-21 18:47:20,032 - trading_bot - INFO - Sending order request: {'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'MARKET', 'quantity': 0.01}
 2026-07-21 18:47:20,386 - trading_bot - INFO - Order successful. Response: {'orderId': 23159224433, 'symbol': 'BTCUSDT', 'status': 'NEW', 'clientOrderId': 'KtUuDfNCTz2t67WuwQE0Y8', 'price': '0.00', 'origQty': '0.0100', 'executedQty': '0.0000', 'cumQty': '0.0000', 'timeInForce': 'GTC', 'type': 'MARKET', 'reduceOnly': False, 'closePosition': False, 'side': 'BUY', 'positionSide': 'BOTH', 'stopPrice': '0.00', 'workingType': 'CONTRACT_PRICE', 'priceProtect': False, 'origType': 'MARKET', 'priceMatch': 'NONE', 'selfTradePreventionMode': 'EXPIRE_MAKER', 'goodTillDate': 0, 'updateTime': 1784639840304}
+2026-07-21 18:53:27,757 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-21 18:53:28,474 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-21 18:53:30,097 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
+2026-07-21 18:53:30,481 - trading_bot - INFO - Successfully initialized Binance Futures Testnet client.
