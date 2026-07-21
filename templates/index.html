@@ -3,143 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quant Engine V5 | Command Center</title>
+    <title>Quant Engine V6 | Singularity</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <script type="text/javascript" src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body id="app-body">
     <div class="hud-overlay"></div>
-    <nav class="top-nav">
-        <div class="nav-brand">
-            <span class="logo">QUANT</span><span class="logo-accent">V5</span>
-            <div class="market-pair">BTCUSDT</div>
-        </div>
-        <div class="nav-center">
-            <div class="panic-wrapper">
+    
+    <!-- 3D Spatial Scene -->
+    <div class="spatial-scene" id="spatial-scene">
+        
+        <nav class="top-nav spatial-element" data-z="20">
+            <div class="nav-brand">
+                <span class="logo">Q</span><span class="logo-accent">V6</span>
+                <div class="market-pair">BTC-USDT</div>
+            </div>
+            
+            <div class="nav-stats">
+                <div class="stat-box">
+                    <div class="stat-label">MARK PRICE</div>
+                    <div class="stat-value" id="live-price">---</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">MARGIN</div>
+                    <div class="stat-value text-cyan" id="available-margin">---</div>
+                </div>
                 <button id="kill-switch" class="btn-panic">⚠ PANIC OVERRIDE</button>
             </div>
-        </div>
-        <div class="nav-stats">
-            <div class="stat-box">
-                <div class="stat-label">Live Mark Price</div>
-                <div class="stat-value" id="live-price">Loading...</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Available Margin</div>
-                <div class="stat-value text-cyan" id="available-margin">0.00 USDT</div>
-            </div>
-            <div class="algo-toggle-box">
-                <span class="stat-label">Neural Engine</span>
-                <label class="switch">
-                    <input type="checkbox" id="algo-switch">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-        </div>
-    </nav>
+        </nav>
 
-    <main class="holographic-grid">
-        <!-- LEFT: Neural Core Gauges -->
-        <section class="panel panel-left neural-core">
-            <div class="panel-title">NEURAL CORE STATE</div>
+        <main class="holographic-grid">
             
-            <div class="gauge-container">
-                <div class="gauge-title">RSI Exhaustion</div>
-                <div class="gauge-value" id="rsi-val">50.00</div>
-                <div class="gauge-bar-wrapper">
-                    <div class="gauge-bar" id="rsi-bar" style="width: 50%;"></div>
-                </div>
-                <div class="gauge-labels"><span>Oversold</span><span>Overbought</span></div>
-            </div>
-
-            <div class="gauge-container">
-                <div class="gauge-title">MACD Momentum</div>
-                <div class="gauge-value" id="macd-val">0.00</div>
-                <div class="gauge-bar-wrapper">
-                    <div class="gauge-bar macd-bar" id="macd-bar" style="width: 50%;"></div>
-                </div>
-                <div class="gauge-labels"><span>Bearish</span><span>Bullish</span></div>
-            </div>
-
-            <div class="gauge-container">
-                <div class="gauge-title">Volatility (BB)</div>
-                <div class="gauge-value" id="bb-val">Neutral</div>
-                <div class="gauge-bar-wrapper">
-                    <div class="gauge-bar bb-bar" id="bb-bar" style="width: 50%;"></div>
-                </div>
-                <div class="gauge-labels"><span>Support</span><span>Resistance</span></div>
-            </div>
-
-            <div class="core-status" id="core-status">
-                SYSTEM STANDBY
-            </div>
-        </section>
-
-        <!-- CENTER: Main Chart -->
-        <section class="panel panel-center chart-wrapper" id="chart-wrapper">
-            <div id="chart-container" style="width: 100%; height: 100%;"></div>
-        </section>
-
-        <!-- RIGHT: Orderbook & Manual Entry -->
-        <section class="panel panel-right">
-            <div class="panel-title">MANUAL OVERRIDE</div>
-            <form id="trade-form" class="cyber-form">
-                <div class="input-group">
-                    <label>Order Size (BTC)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="quantity" step="0.001" min="0.001" value="0.01" required>
-                    </div>
-                </div>
-                <div class="slider-presets">
-                    <button type="button" class="preset-btn" data-val="0.01">0.01</button>
-                    <button type="button" class="preset-btn" data-val="0.05">0.05</button>
-                    <button type="button" class="preset-btn" data-val="0.1">0.1</button>
-                    <button type="button" class="preset-btn" data-val="0.5">0.5</button>
-                </div>
-                
-                <div class="advanced-section">
-                    <label class="cyber-checkbox">
-                        <input type="checkbox" id="use-tpsl">
-                        <span>Auto Risk Mgmt (TP/SL)</span>
+            <!-- LEFT: SVG Neural Core Gauges -->
+            <section class="panel panel-left spatial-element" data-z="30">
+                <div class="panel-header">
+                    <div class="dot-indicator"></div> NEURAL CORE
+                    <label class="switch ml-auto">
+                        <input type="checkbox" id="algo-switch">
+                        <span class="slider round"></span>
                     </label>
                 </div>
-
-                <div class="action-buttons">
-                    <button type="button" id="buy-btn" class="btn btn-buy">EXECUTE LONG</button>
-                    <button type="button" id="sell-btn" class="btn btn-sell">EXECUTE SHORT</button>
-                    <input type="hidden" id="side" value="BUY">
-                    <input type="hidden" id="order-type" value="MARKET">
-                </div>
-            </form>
-
-            <div class="panel-title mt-20">LIVE ORDERBOOK</div>
-            <div class="orderbook" id="orderbook">
-                <div class="ob-row ob-header">
-                    <span>Price</span><span>Amount</span>
-                </div>
-                <div id="ob-asks" class="ob-asks"></div>
-                <div id="ob-spread" class="ob-spread">---</div>
-                <div id="ob-bids" class="ob-bids"></div>
-            </div>
-        </section>
-
-        <!-- BOTTOM: Active State & Logs -->
-        <section class="panel panel-bottom">
-            <div class="bottom-grid">
-                <div class="position-tracker">
-                    <div class="panel-title">ACTIVE OPERATION</div>
-                    <div class="pos-data" id="pos-data">
-                        NO ACTIVE POSITIONS
+                
+                <div class="gauge-grid">
+                    <!-- RSI Gauge -->
+                    <div class="svg-gauge-box">
+                        <svg class="radial-gauge" viewBox="0 0 100 100">
+                            <circle class="gauge-bg" cx="50" cy="50" r="40" />
+                            <circle class="gauge-fill" id="rsi-arc" cx="50" cy="50" r="40" />
+                        </svg>
+                        <div class="gauge-center">
+                            <span class="gauge-lbl">RSI</span>
+                            <span class="gauge-val" id="rsi-val">--</span>
+                        </div>
+                    </div>
+                    
+                    <!-- MACD Gauge -->
+                    <div class="svg-gauge-box">
+                        <svg class="radial-gauge" viewBox="0 0 100 100">
+                            <circle class="gauge-bg" cx="50" cy="50" r="40" />
+                            <circle class="gauge-fill" id="macd-arc" cx="50" cy="50" r="40" />
+                        </svg>
+                        <div class="gauge-center">
+                            <span class="gauge-lbl">MACD</span>
+                            <span class="gauge-val" id="macd-val">--</span>
+                        </div>
+                    </div>
+                    
+                    <!-- BB Gauge -->
+                    <div class="svg-gauge-box">
+                        <svg class="radial-gauge" viewBox="0 0 100 100">
+                            <circle class="gauge-bg" cx="50" cy="50" r="40" />
+                            <circle class="gauge-fill" id="bb-arc" cx="50" cy="50" r="40" />
+                        </svg>
+                        <div class="gauge-center">
+                            <span class="gauge-lbl">VOLA</span>
+                            <span class="gauge-val" id="bb-val">--</span>
+                        </div>
                     </div>
                 </div>
-                <div class="log-tracker">
-                    <div class="panel-title">ALGO THOUGHT LOG</div>
-                    <div class="console-output" id="status-message">Awaiting Initialization...</div>
+
+                <div class="core-status" id="core-status">SYSTEM STANDBY</div>
+            </section>
+
+            <!-- CENTER: Main Chart -->
+            <section class="panel panel-center chart-wrapper spatial-element" data-z="10">
+                <div id="chart-container" style="width: 100%; height: 100%;"></div>
+            </section>
+
+            <!-- RIGHT: Manual Entry -->
+            <section class="panel panel-right spatial-element" data-z="40">
+                <div class="panel-header">MANUAL EXECUTION</div>
+                <form id="trade-form" class="cyber-form">
+                    <div class="input-group">
+                        <label>POSITION SIZE (BTC)</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="quantity" step="0.001" min="0.001" value="0.01" required>
+                        </div>
+                    </div>
+                    <div class="slider-presets">
+                        <button type="button" class="preset-btn" data-val="0.01">0.01</button>
+                        <button type="button" class="preset-btn" data-val="0.05">0.05</button>
+                        <button type="button" class="preset-btn" data-val="0.1">0.1</button>
+                        <button type="button" class="preset-btn" data-val="0.5">0.5</button>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button type="button" id="buy-btn" class="btn btn-buy">LONG</button>
+                        <button type="button" id="sell-btn" class="btn btn-sell">SHORT</button>
+                        <input type="hidden" id="order-type" value="MARKET">
+                    </div>
+                </form>
+
+                <div class="panel-header mt-4">ORDERBOOK</div>
+                <div class="orderbook" id="orderbook">
+                    <div id="ob-asks" class="ob-asks"></div>
+                    <div id="ob-spread" class="ob-spread">---</div>
+                    <div id="ob-bids" class="ob-bids"></div>
                 </div>
-            </div>
-        </section>
-    </main>
+            </section>
+
+            <!-- BOTTOM: Active State & Logs -->
+            <section class="panel panel-bottom spatial-element" data-z="25">
+                <div class="bottom-grid">
+                    <div class="position-tracker">
+                        <div class="panel-header">ACTIVE POSITIONS</div>
+                        <div class="pos-data" id="pos-data">NONE</div>
+                    </div>
+                    <div class="log-tracker">
+                        <div class="panel-header">ALGORITHMIC LOG</div>
+                        <div class="console-output" id="status-message">Initializing sequence...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div> <!-- end spatial scene -->
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
