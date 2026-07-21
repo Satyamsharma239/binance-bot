@@ -3,142 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quant Engine V6 | Singularity</title>
+    <title>Groww-Killer | Smart Auto-Invest</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <script type="text/javascript" src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Feather Icons for clean UI elements -->
+    <script src="https://unpkg.com/feather-icons"></script>
 </head>
-<body id="app-body">
-    <div class="hud-overlay"></div>
+<body>
     
-    <!-- 3D Spatial Scene -->
-    <div class="spatial-scene" id="spatial-scene">
-        
-        <nav class="top-nav spatial-element" data-z="20">
-            <div class="nav-brand">
-                <span class="logo">Q</span><span class="logo-accent">V6</span>
-                <div class="market-pair">BTC-USDT</div>
+    <!-- Top Navigation Bar (Clean & Simple) -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <i data-feather="trending-up" class="logo-icon"></i>
+                <span>TradePro</span>
             </div>
-            
-            <div class="nav-stats">
-                <div class="stat-box">
-                    <div class="stat-label">MARK PRICE</div>
-                    <div class="stat-value" id="live-price">---</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">MARGIN</div>
-                    <div class="stat-value text-cyan" id="available-margin">---</div>
-                </div>
-                <button id="kill-switch" class="btn-panic">⚠ PANIC OVERRIDE</button>
+            <div class="nav-links">
+                <a href="#" class="active">Explore</a>
+                <a href="#">Portfolio</a>
             </div>
-        </nav>
+        </div>
+        <div class="nav-right">
+            <div class="balance-badge">
+                <i data-feather="wallet" class="icon-sm"></i>
+                <span id="available-margin">₹0.00</span>
+            </div>
+            <div class="profile-avatar">S</div>
+        </div>
+    </nav>
 
-        <main class="holographic-grid">
+    <!-- Main Container -->
+    <main class="app-container">
+        
+        <!-- Left Side: Asset Chart -->
+        <section class="asset-section">
+            <div class="asset-header">
+                <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" alt="BTC" class="asset-icon">
+                <div>
+                    <h1 class="asset-title">Bitcoin (BTC/USDT)</h1>
+                    <div class="asset-price-row">
+                        <span class="live-price" id="live-price">$0.00</span>
+                        <span class="price-change positive" id="price-change">+0.00%</span>
+                    </div>
+                </div>
+            </div>
             
-            <!-- LEFT: SVG Neural Core Gauges -->
-            <section class="panel panel-left spatial-element" data-z="30">
-                <div class="panel-header">
-                    <div class="dot-indicator"></div> NEURAL CORE
-                    <label class="switch ml-auto">
+            <div class="chart-card">
+                <div id="chart-container" style="width: 100%; height: 100%;"></div>
+            </div>
+            
+            <!-- Portfolio Tracker (Bottom Left) -->
+            <div class="portfolio-section">
+                <h2 class="section-title">Your Investment</h2>
+                <div class="portfolio-card" id="pos-data">
+                    <div class="empty-state">
+                        <i data-feather="briefcase" class="empty-icon"></i>
+                        <p>No active investments right now.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: Smart Action Panel -->
+        <section class="action-section">
+            
+            <!-- The Killer Feature: Autopilot -->
+            <div class="action-card autopilot-card">
+                <div class="autopilot-header">
+                    <div class="header-text">
+                        <h3>AI Autopilot</h3>
+                        <p>Let our smart algorithms trade for you 24/7.</p>
+                    </div>
+                    <label class="toggle-switch">
                         <input type="checkbox" id="algo-switch">
-                        <span class="slider round"></span>
+                        <span class="toggle-slider"></span>
                     </label>
                 </div>
+                <div class="autopilot-status" id="core-status">
+                    <i data-feather="moon" class="status-icon"></i>
+                    <span>Autopilot is currently paused.</span>
+                </div>
+            </div>
+
+            <!-- Manual Trading (Groww-Style) -->
+            <div class="action-card manual-trade-card">
+                <div class="trade-tabs">
+                    <button class="tab-btn active" data-side="BUY">Buy</button>
+                    <button class="tab-btn" data-side="SELL">Sell</button>
+                </div>
                 
-                <div class="gauge-grid">
-                    <!-- RSI Gauge -->
-                    <div class="svg-gauge-box">
-                        <svg class="radial-gauge" viewBox="0 0 100 100">
-                            <circle class="gauge-bg" cx="50" cy="50" r="40" />
-                            <circle class="gauge-fill" id="rsi-arc" cx="50" cy="50" r="40" />
-                        </svg>
-                        <div class="gauge-center">
-                            <span class="gauge-lbl">RSI</span>
-                            <span class="gauge-val" id="rsi-val">--</span>
+                <form id="trade-form">
+                    <div class="input-box">
+                        <label>Amount (BTC)</label>
+                        <div class="input-row">
+                            <input type="number" id="quantity" step="0.001" min="0.001" value="0.01">
                         </div>
                     </div>
                     
-                    <!-- MACD Gauge -->
-                    <div class="svg-gauge-box">
-                        <svg class="radial-gauge" viewBox="0 0 100 100">
-                            <circle class="gauge-bg" cx="50" cy="50" r="40" />
-                            <circle class="gauge-fill" id="macd-arc" cx="50" cy="50" r="40" />
-                        </svg>
-                        <div class="gauge-center">
-                            <span class="gauge-lbl">MACD</span>
-                            <span class="gauge-val" id="macd-val">--</span>
-                        </div>
+                    <div class="order-summary">
+                        <span>Order Type</span>
+                        <span class="summary-val">Market</span>
                     </div>
                     
-                    <!-- BB Gauge -->
-                    <div class="svg-gauge-box">
-                        <svg class="radial-gauge" viewBox="0 0 100 100">
-                            <circle class="gauge-bg" cx="50" cy="50" r="40" />
-                            <circle class="gauge-fill" id="bb-arc" cx="50" cy="50" r="40" />
-                        </svg>
-                        <div class="gauge-center">
-                            <span class="gauge-lbl">VOLA</span>
-                            <span class="gauge-val" id="bb-val">--</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="core-status" id="core-status">SYSTEM STANDBY</div>
-            </section>
-
-            <!-- CENTER: Main Chart -->
-            <section class="panel panel-center chart-wrapper spatial-element" data-z="10">
-                <div id="chart-container" style="width: 100%; height: 100%;"></div>
-            </section>
-
-            <!-- RIGHT: Manual Entry -->
-            <section class="panel panel-right spatial-element" data-z="40">
-                <div class="panel-header">MANUAL EXECUTION</div>
-                <form id="trade-form" class="cyber-form">
-                    <div class="input-group">
-                        <label>POSITION SIZE (BTC)</label>
-                        <div class="input-wrapper">
-                            <input type="number" id="quantity" step="0.001" min="0.001" value="0.01" required>
-                        </div>
-                    </div>
-                    <div class="slider-presets">
-                        <button type="button" class="preset-btn" data-val="0.01">0.01</button>
-                        <button type="button" class="preset-btn" data-val="0.05">0.05</button>
-                        <button type="button" class="preset-btn" data-val="0.1">0.1</button>
-                        <button type="button" class="preset-btn" data-val="0.5">0.5</button>
-                    </div>
-                    
-                    <div class="action-buttons">
-                        <button type="button" id="buy-btn" class="btn btn-buy">LONG</button>
-                        <button type="button" id="sell-btn" class="btn btn-sell">SHORT</button>
-                        <input type="hidden" id="order-type" value="MARKET">
-                    </div>
+                    <button type="button" class="btn-primary" id="execute-btn">Buy Bitcoin</button>
                 </form>
-
-                <div class="panel-header mt-4">ORDERBOOK</div>
-                <div class="orderbook" id="orderbook">
-                    <div id="ob-asks" class="ob-asks"></div>
-                    <div id="ob-spread" class="ob-spread">---</div>
-                    <div id="ob-bids" class="ob-bids"></div>
+            </div>
+            
+            <!-- Kill Switch (Safety) -->
+            <div class="safety-card">
+                <div class="safety-info">
+                    <i data-feather="shield" class="shield-icon"></i>
+                    <span>Flash-Crash Protection Active</span>
                 </div>
-            </section>
+                <button id="kill-switch" class="btn-danger">Close All Positions</button>
+            </div>
+            
+            <!-- Hidden inputs for JS logic -->
+            <input type="hidden" id="order-type" value="MARKET">
+            <input type="hidden" id="side" value="BUY">
 
-            <!-- BOTTOM: Active State & Logs -->
-            <section class="panel panel-bottom spatial-element" data-z="25">
-                <div class="bottom-grid">
-                    <div class="position-tracker">
-                        <div class="panel-header">ACTIVE POSITIONS</div>
-                        <div class="pos-data" id="pos-data">NONE</div>
-                    </div>
-                    <div class="log-tracker">
-                        <div class="panel-header">ALGORITHMIC LOG</div>
-                        <div class="console-output" id="status-message">Initializing sequence...</div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div> <!-- end spatial scene -->
+        </section>
+    </main>
 
+    <script>
+        feather.replace();
+    </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
