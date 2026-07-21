@@ -74,6 +74,17 @@ def get_logs():
     """Returns the recent logs from the Algo Engine."""
     return jsonify({'logs': algo_engine.logs})
 
+@app.route('/api/algo/state', methods=['GET'])
+def get_algo_state():
+    """Returns the live state of the Neural Core."""
+    return jsonify(algo_engine.state)
+
+@app.route('/api/algo/panic', methods=['POST'])
+def trigger_panic():
+    """Manual kill switch override."""
+    algo_engine.kill_switch()
+    return jsonify({'status': 'success', 'message': 'PANIC MODE ACTIVATED. ALL POSITIONS LIQUIDATED.'})
+
 if __name__ == '__main__':
     # Run the Flask app on port 5001 to avoid macOS AirPlay conflicts
     app.run(debug=True, port=5001)

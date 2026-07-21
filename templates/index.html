@@ -3,81 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binance Advanced Algorithmic Terminal</title>
+    <title>Quant Engine V5 | Command Center</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
     <script type="text/javascript" src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-left">
-            <span class="logo">BINANCE FUTURES</span>
-            <span class="symbol-display">BTCUSDT</span>
-            <span id="live-price" class="nav-price">0.00</span>
+<body id="app-body">
+    <div class="hud-overlay"></div>
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <span class="logo">QUANT</span><span class="logo-accent">V5</span>
+            <div class="market-pair">BTCUSDT</div>
         </div>
-        <div class="nav-right">
-            <div class="algo-toggle">
-                <span>RSI Auto-Trading</span>
+        <div class="nav-center">
+            <div class="panic-wrapper">
+                <button id="kill-switch" class="btn-panic">⚠ PANIC OVERRIDE</button>
+            </div>
+        </div>
+        <div class="nav-stats">
+            <div class="stat-box">
+                <div class="stat-label">Live Mark Price</div>
+                <div class="stat-value" id="live-price">Loading...</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Available Margin</div>
+                <div class="stat-value text-cyan" id="available-margin">0.00 USDT</div>
+            </div>
+            <div class="algo-toggle-box">
+                <span class="stat-label">Neural Engine</span>
                 <label class="switch">
                     <input type="checkbox" id="algo-switch">
                     <span class="slider round"></span>
                 </label>
             </div>
-            <div class="wallet-balance">
-                <span class="label">Margin:</span>
-                <span id="available-margin" class="value text-cyan">0.00 USDT</span>
-            </div>
         </div>
     </nav>
-    <main class="exchange-grid">
-        <section class="chart-container" id="chart-container"></section>
-        <section class="order-panel">
-            <div class="panel-header">Place Order</div>
-            <form id="trade-form">
-                <div class="order-tabs">
-                    <button type="button" class="tab active" data-type="MARKET">Market</button>
-                    <button type="button" class="tab" data-type="LIMIT">Limit</button>
-                    <input type="hidden" id="order-type" value="MARKET">
+
+    <main class="holographic-grid">
+        <!-- LEFT: Neural Core Gauges -->
+        <section class="panel panel-left neural-core">
+            <div class="panel-title">NEURAL CORE STATE</div>
+            
+            <div class="gauge-container">
+                <div class="gauge-title">RSI Exhaustion</div>
+                <div class="gauge-value" id="rsi-val">50.00</div>
+                <div class="gauge-bar-wrapper">
+                    <div class="gauge-bar" id="rsi-bar" style="width: 50%;"></div>
                 </div>
-                <div class="input-group" id="price-group" style="display: none;">
-                    <label>Price</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="price" step="0.1">
-                        <span class="currency">USDT</span>
-                    </div>
+                <div class="gauge-labels"><span>Oversold</span><span>Overbought</span></div>
+            </div>
+
+            <div class="gauge-container">
+                <div class="gauge-title">MACD Momentum</div>
+                <div class="gauge-value" id="macd-val">0.00</div>
+                <div class="gauge-bar-wrapper">
+                    <div class="gauge-bar macd-bar" id="macd-bar" style="width: 50%;"></div>
                 </div>
+                <div class="gauge-labels"><span>Bearish</span><span>Bullish</span></div>
+            </div>
+
+            <div class="gauge-container">
+                <div class="gauge-title">Volatility (BB)</div>
+                <div class="gauge-value" id="bb-val">Neutral</div>
+                <div class="gauge-bar-wrapper">
+                    <div class="gauge-bar bb-bar" id="bb-bar" style="width: 50%;"></div>
+                </div>
+                <div class="gauge-labels"><span>Support</span><span>Resistance</span></div>
+            </div>
+
+            <div class="core-status" id="core-status">
+                SYSTEM STANDBY
+            </div>
+        </section>
+
+        <!-- CENTER: Main Chart -->
+        <section class="panel panel-center chart-wrapper" id="chart-wrapper">
+            <div id="chart-container" style="width: 100%; height: 100%;"></div>
+        </section>
+
+        <!-- RIGHT: Orderbook & Manual Entry -->
+        <section class="panel panel-right">
+            <div class="panel-title">MANUAL OVERRIDE</div>
+            <form id="trade-form" class="cyber-form">
                 <div class="input-group">
-                    <label>Size</label>
+                    <label>Order Size (BTC)</label>
                     <div class="input-wrapper">
                         <input type="number" id="quantity" step="0.001" min="0.001" value="0.01" required>
-                        <span class="currency">BTC</span>
                     </div>
                 </div>
+                <div class="slider-presets">
+                    <button type="button" class="preset-btn" data-val="0.01">0.01</button>
+                    <button type="button" class="preset-btn" data-val="0.05">0.05</button>
+                    <button type="button" class="preset-btn" data-val="0.1">0.1</button>
+                    <button type="button" class="preset-btn" data-val="0.5">0.5</button>
+                </div>
+                
                 <div class="advanced-section">
-                    <label class="checkbox-label">
+                    <label class="cyber-checkbox">
                         <input type="checkbox" id="use-tpsl">
-                        Take Profit / Stop Loss
+                        <span>Auto Risk Mgmt (TP/SL)</span>
                     </label>
-                    <div class="tpsl-inputs" id="tpsl-inputs" style="display: none;">
-                        <div class="input-group">
-                            <label>TP Price</label>
-                            <input type="number" id="tp-price" step="0.1">
-                        </div>
-                        <div class="input-group">
-                            <label>SL Price</label>
-                            <input type="number" id="sl-price" step="0.1">
-                        </div>
-                    </div>
                 </div>
+
                 <div class="action-buttons">
-                    <button type="button" id="buy-btn" class="btn btn-buy">Buy / Long</button>
-                    <button type="button" id="sell-btn" class="btn btn-sell">Sell / Short</button>
+                    <button type="button" id="buy-btn" class="btn btn-buy">EXECUTE LONG</button>
+                    <button type="button" id="sell-btn" class="btn btn-sell">EXECUTE SHORT</button>
                     <input type="hidden" id="side" value="BUY">
+                    <input type="hidden" id="order-type" value="MARKET">
                 </div>
             </form>
-            <div class="console-output" id="status-message">Terminal Ready...</div>
+
+            <div class="panel-title mt-20">LIVE ORDERBOOK</div>
+            <div class="orderbook" id="orderbook">
+                <div class="ob-row ob-header">
+                    <span>Price</span><span>Amount</span>
+                </div>
+                <div id="ob-asks" class="ob-asks"></div>
+                <div id="ob-spread" class="ob-spread">---</div>
+                <div id="ob-bids" class="ob-bids"></div>
+            </div>
+        </section>
+
+        <!-- BOTTOM: Active State & Logs -->
+        <section class="panel panel-bottom">
+            <div class="bottom-grid">
+                <div class="position-tracker">
+                    <div class="panel-title">ACTIVE OPERATION</div>
+                    <div class="pos-data" id="pos-data">
+                        NO ACTIVE POSITIONS
+                    </div>
+                </div>
+                <div class="log-tracker">
+                    <div class="panel-title">ALGO THOUGHT LOG</div>
+                    <div class="console-output" id="status-message">Awaiting Initialization...</div>
+                </div>
+            </div>
         </section>
     </main>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

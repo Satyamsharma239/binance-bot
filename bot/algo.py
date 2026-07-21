@@ -5,8 +5,8 @@ import pandas as pd
 import pandas_ta as ta
 from bot.client import BinanceFuturesClient
 
-class QuantEngineV3:
-    """Institutional Grade Algorithmic Trading Engine"""
+class QuantEngineV4:
+    """Institutional Grade Algorithmic Trading Engine with Panic / Volatility Protection"""
     
     def __init__(self):
         self.is_running = False
@@ -17,19 +17,34 @@ class QuantEngineV3:
         self.logs = []
         
         # State Management
-        self.position_side = None  # 'BUY', 'SELL', or None
+        self.position_side = None
         self.entry_price = 0.0
         self.position_qty = 0.0
         
         # Risk Parameters
-        self.risk_pct = 0.02 # Risk 2% of available margin per trade
-        self.tp_pct = 0.015  # Take profit at 1.5%
-        self.sl_pct = 0.0075 # Stop loss at 0.75% (1:2 Risk/Reward)
-
+        self.risk_pct = 0.02
+        self.tp_pct = 0.015
+        self.sl_pct = 0.0075
+        
+        # Neural Core State (Exposed to UI)
+        self.state = {
+            'rsi': 50.0,
+            'macd': 0.0,
+            'macd_signal': 0.0,
+            'bb_upper': 0.0,
+            'bb_lower': 0.0,
+            'price': 0.0,
+            'panic_mode': False,
+            'position': None
+        }
+        
+        # Panic Engine variables
+        self.panic_mode_until = 0
+        self.price_history_1m = [] # Track last 60 seconds of prices for velocity
+        
         self._init_db()
 
     def _init_db(self):
-        """Initialize SQLite database for trade logging."""
         conn = sqlite3.connect('trades.db')
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS trades
@@ -52,14 +67,50 @@ class QuantEngineV3:
             self.is_running = True
             self.thread = threading.Thread(target=self._run_loop, daemon=True)
             self.thread.start()
-            self.log("Quant Engine V3 Started. State: ACTIVE")
+            self.log("Quant Engine V4 (Neural Core) Started.")
 
     def stop(self):
         if self.is_running:
             self.is_running = False
             if self.thread:
                 self.thread.join(timeout=2)
-            self.log("Quant Engine V3 Stopped. State: HALTED")
+            self.log("Quant Engine V4 Halted.")
+
+    def kill_switch(self):
+        """EMERGENCY OVERRIDE: Liquidate everything and halt."""
+        self.log("!!! MANUAL KILL SWITCH ACTIVATED !!!")
+        self.state['panic_mode'] = True
+        self.panic_mode_until = time.time() + 300 # Lock for 5 mins
+        if self.position_side:
+            # Force exit at market price
+            price = self.state['price']
+            self._exit_trade(price, "KILL SWITCH PANIC")
+        self.stop()
+
+    def _check_panic(self, current_price):
+        """Monitors for Flash Crashes / Flash Pumps (>1.5% in 60 seconds)"""
+        now = time.time()
+        self.price_history_1m.append((now, current_price))
+        # Keep only last 60 seconds
+        self.price_history_1m = [p for p in self.price_history_1m if now - p[0] <= 60]
+        
+        if len(self.price_history_1m) > 5:
+            oldest_price = self.price_history_1m[0][1]
+            pct_change = abs((current_price - oldest_price) / oldest_price)
+            
+            if pct_change > 0.015: # 1.5% move in under 1 minute is a flash event
+                self.log(f"!!! FLASH VOLATILITY DETECTED ({pct_change*100:.2f}%) !!! ENTERING PANIC MODE.")
+                self.state['panic_mode'] = True
+                self.panic_mode_until = time.time() + 300 # Cool down for 5 mins
+                if self.position_side:
+                    self._exit_trade(current_price, "VOLATILITY PANIC DUMP")
+                return True
+                
+        if time.time() < self.panic_mode_until:
+            return True
+            
+        self.state['panic_mode'] = False
+        return False
 
     def _run_loop(self):
         while self.is_running:
@@ -67,12 +118,11 @@ class QuantEngineV3:
                 self._execute_cycle()
             except Exception as e:
                 self.log(f"CRITICAL ERROR: {e}")
-            for _ in range(10):
+            for _ in range(5): # Faster tick rate for the Neural Core UI
                 if not self.is_running: break
                 time.sleep(1)
 
     def _execute_cycle(self):
-        """Core cycle: Fetch data, manage open positions, or look for entries."""
         klines = self.client.client.futures_klines(symbol=self.symbol, interval=self.interval, limit=100)
         df = pd.DataFrame(klines, columns=[
             'timestamp', 'open', 'high', 'low', 'close', 'volume', 
@@ -80,141 +130,108 @@ class QuantEngineV3:
         ])
         df['close'] = df['close'].astype(float)
         
-        # Calculate Indicators (Confluence Strategy)
+        # Calculate Indicators
         df['RSI'] = df.ta.rsi(length=14)
-        macd = df.ta.macd(fast=12, slow=26, signal=9)
-        df = pd.concat([df, macd], axis=1)
-        bb = df.ta.bbands(length=20, std=2)
-        df = pd.concat([df, bb], axis=1)
+        df.ta.macd(fast=12, slow=26, signal=9, append=True)
+        df.ta.bbands(length=20, std=2, append=True)
         
-        # Latest completed candle data
         latest = df.iloc[-2]
         current_price = df['close'].iloc[-1]
         
         rsi = latest['RSI']
-        macd_line = latest['MACD_12_26_9']
-        signal_line = latest['MACDs_12_26_9']
-        bb_lower = latest['BBL_20_2.0_2.0']
-        bb_upper = latest['BBU_20_2.0_2.0']
+        macd_line = latest.get('MACD_12_26_9', 0)
+        signal_line = latest.get('MACDs_12_26_9', 0)
+        bb_lower = latest.get('BBL_20_2.0_2.0', 0)
+        bb_upper = latest.get('BBU_20_2.0_2.0', 0)
+
+        # Update Live State for the UI
+        self.state.update({
+            'rsi': rsi if not pd.isna(rsi) else 50,
+            'macd': macd_line if not pd.isna(macd_line) else 0,
+            'macd_signal': signal_line if not pd.isna(signal_line) else 0,
+            'bb_upper': bb_upper if not pd.isna(bb_upper) else current_price,
+            'bb_lower': bb_lower if not pd.isna(bb_lower) else current_price,
+            'price': current_price,
+            'position': self.position_side
+        })
 
         if pd.isna(rsi) or pd.isna(macd_line):
-            self.log("Warming up indicators...")
             return
 
-        self.log(f"{self.symbol} | Price: {current_price} | RSI: {rsi:.2f}")
+        # PANIC OVERRIDE
+        if self._check_panic(current_price):
+            return # Block all further action until panic subsides
 
-        # 1. Position Management (Exit Logic)
+        # 1. Position Management
         if self.position_side:
             self._manage_open_position(current_price)
             return
 
-        # 2. Entry Logic (Confluence)
-        # LONG CONDITION: RSI Oversold + MACD Bullish Cross + Price near/below Lower BB
+        # 2. Confluence Entry Logic
         if rsi < 35 and macd_line > signal_line and current_price <= bb_lower * 1.001:
-            self.log(f"*** CONFLUENCE BUY SIGNAL *** RSI={rsi:.2f}, MACD Bullish, BB Support")
+            self.log(f"*** NEURAL LOCK: BUY ALIGNMENT *** RSI={rsi:.2f}")
             self._enter_trade('BUY', current_price)
             
-        # SHORT CONDITION: RSI Overbought + MACD Bearish Cross + Price near/above Upper BB
         elif rsi > 65 and macd_line < signal_line and current_price >= bb_upper * 0.999:
-            self.log(f"*** CONFLUENCE SELL SIGNAL *** RSI={rsi:.2f}, MACD Bearish, BB Resistance")
+            self.log(f"*** NEURAL LOCK: SELL ALIGNMENT *** RSI={rsi:.2f}")
             self._enter_trade('SELL', current_price)
 
     def _enter_trade(self, side, current_price):
-        """Calculates dynamic position sizing and enters the trade."""
         try:
-            # 1. Fetch available margin
             balance = self.client.get_balance()
             margin = float(balance.get('availableMargin', 0))
-            if margin <= 0:
-                self.log("Insufficient margin to trade.")
-                return
+            if margin <= 0: return
 
-            # 2. Dynamic Position Sizing (Risk 2% of margin)
             risk_amount = margin * self.risk_pct
-            qty = risk_amount / current_price
-            
-            # Binance BTCUSDT min quantity is 0.001
-            qty = round(qty, 3)
-            if qty < 0.001:
-                qty = 0.001 # Fallback to min size
+            qty = round(risk_amount / current_price, 3)
+            if qty < 0.001: qty = 0.001
 
-            self.log(f"Risking {risk_amount:.2f} USDT -> Size: {qty} BTC")
-
-            # 3. Execute Trade
+            self.log(f"Allocating {risk_amount:.2f} USDT -> Size: {qty} BTC")
             from bot.orders import execute_order
-            # In test mode, we might just simulate execution if API keys are strictly for chart watching.
-            # But the logic executes the testnet order:
             execute_order(self.symbol, side, 'MARKET', qty)
             
-            # 4. Update State
             self.position_side = side
             self.entry_price = current_price
             self.position_qty = qty
-            self.log(f"[{side}] Position Opened at {current_price}")
-            
+            self.state['position'] = side
+            self.log(f"[{side}] EXECUTED AT {current_price}")
         except Exception as e:
-            self.log(f"Failed to enter trade: {e}")
+            self.log(f"Execution Error: {e}")
 
     def _manage_open_position(self, current_price):
-        """Monitors open position for Take Profit or Stop Loss."""
         if not self.position_side: return
-        
-        take_profit = 0.0
-        stop_loss = 0.0
-        
+        take_profit = self.entry_price * (1 + self.tp_pct) if self.position_side == 'BUY' else self.entry_price * (1 - self.tp_pct)
+        stop_loss = self.entry_price * (1 - self.sl_pct) if self.position_side == 'BUY' else self.entry_price * (1 + self.sl_pct)
+            
         if self.position_side == 'BUY':
-            take_profit = self.entry_price * (1 + self.tp_pct)
-            stop_loss = self.entry_price * (1 - self.sl_pct)
-            
-            if current_price >= take_profit:
-                self._exit_trade(current_price, "TAKE PROFIT")
-            elif current_price <= stop_loss:
-                self._exit_trade(current_price, "STOP LOSS")
-                
-        elif self.position_side == 'SELL':
-            take_profit = self.entry_price * (1 - self.tp_pct)
-            stop_loss = self.entry_price * (1 + self.sl_pct)
-            
-            if current_price <= take_profit:
-                self._exit_trade(current_price, "TAKE PROFIT")
-            elif current_price >= stop_loss:
-                self._exit_trade(current_price, "STOP LOSS")
+            if current_price >= take_profit: self._exit_trade(current_price, "TAKE PROFIT")
+            elif current_price <= stop_loss: self._exit_trade(current_price, "STOP LOSS")
+        else:
+            if current_price <= take_profit: self._exit_trade(current_price, "TAKE PROFIT")
+            elif current_price >= stop_loss: self._exit_trade(current_price, "STOP LOSS")
 
     def _exit_trade(self, exit_price, reason):
-        """Exits trade, resets state, and logs to SQLite."""
-        self.log(f"*** CLOSING POSITION: {reason} at {exit_price} ***")
-        
+        self.log(f"*** EXITING POSITION: {reason} at {exit_price} ***")
         try:
-            # Execute closing order (opposite side)
             close_side = 'SELL' if self.position_side == 'BUY' else 'BUY'
             from bot.orders import execute_order
             execute_order(self.symbol, close_side, 'MARKET', self.position_qty)
             
-            # Calculate PNL
-            pnl = 0.0
-            if self.position_side == 'BUY':
-                pnl = (exit_price - self.entry_price) * self.position_qty
-            else:
-                pnl = (self.entry_price - exit_price) * self.position_qty
-                
-            self.log(f"Trade Closed. PNL: {pnl:.2f} USDT")
+            pnl = (exit_price - self.entry_price) * self.position_qty if self.position_side == 'BUY' else (self.entry_price - exit_price) * self.position_qty
+            self.log(f"CLOSED. PNL: {pnl:.2f} USDT")
             
-            # Log to DB
             conn = sqlite3.connect('trades.db')
             c = conn.cursor()
-            time_str = time.strftime("%Y-%m-%d %H:%M:%S")
             c.execute("INSERT INTO trades (time, symbol, side, quantity, entry_price, exit_price, pnl) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                      (time_str, self.symbol, self.position_side, self.position_qty, self.entry_price, exit_price, pnl))
+                      (time.strftime("%Y-%m-%d %H:%M:%S"), self.symbol, self.position_side, self.position_qty, self.entry_price, exit_price, pnl))
             conn.commit()
             conn.close()
-            
         except Exception as e:
-            self.log(f"Failed to exit trade gracefully: {e}")
-            
+            self.log(f"Exit Error: {e}")
         finally:
-            # Reset State
             self.position_side = None
             self.entry_price = 0.0
             self.position_qty = 0.0
+            self.state['position'] = None
 
-algo_engine = QuantEngineV3()
+algo_engine = QuantEngineV4()
